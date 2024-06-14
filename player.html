@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Varsport Apparel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="assets/logo.png" alt="Varsport Logo">
+        <h1>Varsport Apparel Management</h1>
+        <nav>
+            <ul>
+                <li><a href="player.html">Players</a></li>
+                <li><a href="club.html">Clubs</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="players">
+            <form id="add-player-form">
+                <h3>Add New Player</h3>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required><br>
+                <label for="position">Position:</label>
+                <input type="text" id="position" name="position"><br>
+                <label for="club_id">Club ID:</label>
+                <input type="number" id="club_id" name="club_id" required><br>
+                <label for="contract_duration">Contract Duration (months):</label>
+                <input type="number" id="contract_duration" name="contract_duration" required><br>
+                <button type="submit">Add Player</button>
+            </form>
+            <h2>Players</h2>
+            <ul id="players-list">
+                <!--Data Player-->
+            </ul>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('http://localhost:5000/players')
+                .then(response => response.json())
+                .then(data => {
+                    const playersList = document.getElementById('players-list');
+                    playersList.innerHTML = '';
+                    data.forEach(player => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <div>
+                                <span>Name: ${player.name}</span><br>
+                                <span>Position: ${player.position}</span><br>
+                                <span>Club ID: ${player.club_id}</span><br>
+                                <span>Contract Duration: ${player.contract_duration} Months</span><br>
+                                <button onclick="updatePlayer(${player.id})">Update</button>
+                                <button onclick="deletePlayer(${player.id})">Delete</button>
+                            </div>
+                        `;
+                        playersList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error fetching players:', error));
+
+            document.getElementById('add-player-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                addPlayer();
+            });
+        });
+
+        function addPlayer() {
+            const name = document.getElementById('name').value;
+            const position = document.getElementById('position').value;
+            const club_id = document.getElementById('club_id').value;
+            const contract_duration = document.getElementById('contract_duration').value;
+
+            fetch('http://localhost:5000/players', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, position, club_id, contract_duration })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Player added successfully!');
+                location.reload();
+            })
+            .catch(error => console.error('Error adding player:', error));
+        }
+
+        function updatePlayer(playerId) {
+            const newName = prompt('Enter new name:');
+            const newPosition = prompt('Enter new position:');
+            const newClubId = prompt('Enter new club ID:');
+            const newContractDuration = prompt('Enter new contract duration (months):');
+
+            fetch(`http://localhost:5000/players/${playerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: newName, position: newPosition, club_id: newClubId, contract_duration: newContractDuration})
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Club ID is not available');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Player updated successfully!');
+                location.reload();
+            })
+            .catch(error => {
+                alert(error.message);
+                console.error('Error updating player:', error);
+            });
+        }
+
+        function deletePlayer(playerId) {
+            if (confirm('Are you sure you want to delete this player?')) {
+                fetch(`http://localhost:5000/players/${playerId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Player deleted successfully!');
+                    location.reload();
+                })
+                .catch(error => console.error('Error deleting player', error));
+            }
+        }
+    </script>
+</body>
+</html>
