@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
@@ -7,7 +7,7 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///list.db'
 db = SQLAlchemy(app)
 
-# Tabel Player
+# Table Player
 class Player(db.Model):
     __tablename__ = 'player'
 
@@ -20,7 +20,7 @@ class Player(db.Model):
     def json(self):
         return {'id': self.id, 'name': self.name, 'position': self.position, 'club_id': self.club_id, 'contract_duration': self.contract_duration}
 
-# Tabel Klub
+# Table Club
 class Club(db.Model):
     __tablename__ = 'club'
     
@@ -33,24 +33,21 @@ class Club(db.Model):
 
 @app.route('/players', methods=['GET', 'POST'])
 def players():
-    if request.method == 'GET':
-        players = Player.query.all()
-        return jsonify([player.json() for player in players])
-    elif request.method == 'POST':
-        data = request.json
+    if request.method == 'POST':
+        data = request.form
         new_player = Player(name=data['name'], position=data.get('position'), club_id=data['club_id'], contract_duration=data.get('contract_duration'))
         db.session.add(new_player)
         db.session.commit()
-        return jsonify(new_player.json()), 201
+        return redirect(url_for('players'))
+    players = Player.query.all()
+    return render_template('player.html', players=players)
 
-@app.route('/players/<int:player_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/players/<int:player_id>', methods=['GET', 'POST'])
 def player(player_id):
     player = Player.query.get_or_404(player_id)
     
-    if request.method == 'GET':
-        return jsonify(player.json())
-    elif request.method == 'PUT':
-        data = request.json
+    if request.method == 'POST':
+        data = request.form
         player.name = data.get('name', player.name)
         player.position = data.get('position', player.position)
         new_club_id = data.get('club_id', player.club_id)
@@ -62,40 +59,45 @@ def player(player_id):
         
         player.club_id = new_club_id
         db.session.commit()
-        return jsonify(player.json())
-    elif request.method == 'DELETE':
-        db.session.delete(player)
-        db.session.commit()
-        return jsonify({'message': 'Player deleted'})
+        return redirect(url_for('players'))
+    return render_template('edit_player.html', player=player)
+
+@app.route('/players/delete/<int:player_id>', methods=['POST'])
+def delete_player(player_id):
+    player = Player.query.get_or_404(player_id)
+    db.session.delete(player)
+    db.session.commit()
+    return redirect(url_for('players'))
 
 @app.route('/clubs', methods=['GET', 'POST'])
 def clubs():
-    if request.method == 'GET':
-        clubs = Club.query.all()
-        return jsonify([club.json() for club in clubs])
-    elif request.method == 'POST':
-        data = request.json
+    if request.method == 'POST':
+        data = request.form
         new_club = Club(name=data['name'], country=data['country'])
         db.session.add(new_club)
         db.session.commit()
-        return jsonify(new_club.json()), 201
+        return redirect(url_for('clubs'))
+    clubs = Club.query.all()
+    return render_template('club.html', clubs=clubs)
 
-@app.route('/clubs/<int:club_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/clubs/<int:club_id>', methods=['GET', 'POST'])
 def club(club_id):
     club = Club.query.get_or_404(club_id)
     
-    if request.method == 'GET':
-        return jsonify(club.json())
-    elif request.method == 'PUT':
-        data = request.json
+    if request.method == 'POST':
+        data = request.form
         club.name = data.get('name', club.name)
         club.country = data.get('country', club.country)
         db.session.commit()
-        return jsonify(club.json())
-    elif request.method == 'DELETE':
-        db.session.delete(club)
-        db.session.commit()
-        return jsonify({'message': 'Club deleted'})
+        return redirect(url_for('clubs'))
+    return render_template('edit_club.html', club=club)
+
+@app.route('/clubs/delete/<int:club_id>', methods=['POST'])
+def delete_club(club_id):
+    club = Club.query.get_or_404(club_id)
+    db.session.delete(club)
+    db.session.commit()
+    return redirect(url_for('clubs'))
 
 if __name__ == '__main__':
     with app.app_context():
