@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Varsport Apparel</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+    <header>
+        <img src="{{url_for('static', filename='assets/logo.png')}}">
+        <h1>Varsport Apparel Management</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('players')}}">Players</a></li>
+                <li><a href="{{url_for('clubs')}}">Clubs</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="players">
+            <form action="{{url_for('players')}}" method="post">
+                <h3>Add New Player</h3>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required><br>
+                <label for="position">Position:</label>
+                <input type="text" id="position" name="position"><br>
+                <label for="club_id">Club ID:</label>
+                <input type="number" id="club_id" name="club_id" required><br>
+                <label for="contract_duration">Contract Duration (months):</label>
+                <input type="number" id="contract_duration" name="contract_duration" required><br>
+                <button type="submit">Add Player</button>
+            </form>
+            <h2>Players</h2>
+            <ul id="players-list">
+                {% for player in players %}
+                <li>
+                    <div>
+                        <div class="player-info">
+                            <span>Name: {{ player.name }}</span><br>
+                            <span>Position: {{ player.position }}</span><br>
+                            <span>Club ID: {{ player.club_id }}</span><br>
+                            <span>Contract Duration: {{ player.contract_duration }} Months</span>
+                        </div>
+                        <div class="player-actions">
+                            <form action="{{url_for('player', player_id=player.id)}}" method="get" style="display:inline;">
+                                <button type="submit" class="btnUpdate">Update</button>
+                            </form>
+                            <form action="{{url_for('delete_player', player_id=player.id)}}" method="post" style="display:inline;">
+                                <button type="submit" class="btnDelete">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

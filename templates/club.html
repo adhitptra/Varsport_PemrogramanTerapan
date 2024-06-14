@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Varsport Apparel</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+    <header>
+        <img src="{{url_for('static', filename='assets/logo.png')}}">
+        <h1>Varsport Apparel Management</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('players')}}">Players</a></li>
+                <li><a href="{{url_for('clubs')}}">Clubs</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="clubs">
+            <form action="{{ url_for('clubs') }}" method="post">
+                <h3>Add New Club</h3>
+                <label for="club_name">Name:</label>
+                <input type="text" id="club_name" name="name" required><br>
+                <label for="country">Country:</label>
+                <input type="text" id="country" name="country" required><br>
+                <button type="submit">Add Club</button>
+            </form>
+            <h2>Clubs</h2>
+            <ul id="clubs-list">
+                {% for club in clubs %}
+                <li>
+                    <div class="club-info">
+                        Club ID: {{ club.id }} - {{ club.name }} - {{ club.country }}
+                    </div>
+                    <div class="club-actions">
+                        <form action="{{ url_for('club', club_id=club.id) }}" method="get" style="display:inline;">
+                            <button type="submit" class="btnUpdate">Update</button>
+                        </form>
+                        <form action="{{ url_for('delete_club', club_id=club.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btnDelete">Delete</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>
